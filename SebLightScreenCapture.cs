@@ -25,27 +25,28 @@ namespace seblight
 
         SebLightCore core;                              // Serial communication core
 
+        Size screenSize;                                // True pixel screen size
 
-
-        public SebLightScreenCapture(SebLightCore core)
+        public SebLightScreenCapture(SebLightCore core, Size screenSize)
         {
             // Setup schreen capture thread                      
             this.core = core;
+            this.screenSize = screenSize;
             this.pauseScreenCap = new ManualResetEvent(false);       // Do start paused!
             this.shutdowsScreenCapEvent = new ManualResetEvent(false);   // Do not start by shutting down - boring
             this.screenCaptureThread = new Thread(new ThreadStart(run));
             this.screenCaptureThread.Start();                       // This will pause rather fast, button must be clicked
 
 
-        }
 
+        }
 
 
         public void run()
         {
 
             // Capture image bitmaps
-            Bitmap screenCapture = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height, PixelFormat.Format32bppRgb);
+            Bitmap screenCapture = new Bitmap(screenSize.Width, screenSize.Height, PixelFormat.Format32bppRgb);
             Bitmap ledCapture = new Bitmap(SebLightCore.leds_top, SebLightCore.leds_side, PixelFormat.Format32bppRgb);
             graphics = Graphics.FromImage(screenCapture);
             smallGraphics = Graphics.FromImage(ledCapture);
@@ -66,7 +67,7 @@ namespace seblight
 
                 timer.Restart();        // Restart timer
 
-                graphics.CopyFromScreen(0, 0, 0, 0, Screen.PrimaryScreen.Bounds.Size, CopyPixelOperation.SourceCopy);
+                graphics.CopyFromScreen(0, 0, 0, 0, screenSize, CopyPixelOperation.SourceCopy);
                 smallGraphics.DrawImage(screenCapture, 0, 0, SebLightCore.leds_top, SebLightCore.leds_side);
 
                 screenCapture.Save("screenCapture.png", ImageFormat.Png);

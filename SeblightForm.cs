@@ -53,14 +53,22 @@ namespace seblight
             this.SetStyle(ControlStyles.SupportsTransparentBackColor, true);    // Allow transparent control
 
             core = new SebLightCore();
-            screenCapture = new SebLightScreenCapture(core);
-
+            screenCapture = new SebLightScreenCapture(core, getDpiSafeResolution());
+         
             mouseButtonDown = false;   // We do not start by moving the mouse
 
         }   // End SebLight Class constructor
 
 
 
+        private Size getDpiSafeResolution()
+        {
+            using (Graphics formGraphics = this.CreateGraphics())
+            {
+                return new Size((Screen.PrimaryScreen.Bounds.Width * (int)formGraphics.DpiX) / 96
+                    , (Screen.PrimaryScreen.Bounds.Height * (int)formGraphics.DpiY) / 96);
+            }
+        }
 
 
         public void closeSeblightForm()
