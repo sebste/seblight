@@ -21,10 +21,8 @@ namespace seblight
         Thread screenCaptureThread;                     // Thread for screen capture
         ManualResetEvent pauseScreenCap;                // Reset event to pause screen capture
         ManualResetEvent shutdowsScreenCapEvent;        // Exit screen capture in a safe way
-        double refreshRate;                             // A variable to store refreshrate
 
         SebLightCore core;                              // Serial communication core
-
         Size screenSize;                                // True pixel screen size
 
         public SebLightScreenCapture(SebLightCore core, Size screenSize)
@@ -70,8 +68,8 @@ namespace seblight
                 graphics.CopyFromScreen(0, 0, 0, 0, screenSize, CopyPixelOperation.SourceCopy);
                 smallGraphics.DrawImage(screenCapture, 0, 0, SebLightCore.leds_top, SebLightCore.leds_side);
 
-                screenCapture.Save("screenCapture.png", ImageFormat.Png);
-                ledCapture.Save("ledCapture.png", ImageFormat.Png);
+                //screenCapture.Save("screenCapture.png", ImageFormat.Png);
+                //ledCapture.Save("ledCapture.png", ImageFormat.Png);
 
                 int x = SebLightCore.leds_start;
                 int y = SebLightCore.leds_side - 1;

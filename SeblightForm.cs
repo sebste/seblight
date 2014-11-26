@@ -61,16 +61,6 @@ namespace seblight
 
 
 
-        private Size getDpiSafeResolution()
-        {
-            using (Graphics formGraphics = this.CreateGraphics())
-            {
-                return new Size((Screen.PrimaryScreen.Bounds.Width * (int)formGraphics.DpiX) / 96
-                    , (Screen.PrimaryScreen.Bounds.Height * (int)formGraphics.DpiY) / 96);
-            }
-        }
-
-
         public void closeSeblightForm()
         {
 
@@ -119,10 +109,10 @@ namespace seblight
                 screenCapture.pause();
                 capture_button.Text = "Start screen capture";
                 Thread.Sleep(60);           // Give the screen capture thread some time to finish
-
-                // Set colors
-                core.setAllColors(colorDialog.Color.R, colorDialog.Color.G, colorDialog.Color.B);
             }
+
+            // Set colors
+            core.setAllColors(colorDialog.Color.R, colorDialog.Color.G, colorDialog.Color.B);
         }
 
         private void capture_button_Click(object sender, EventArgs e)
@@ -177,6 +167,21 @@ namespace seblight
         {
             closeSeblightForm();
         }
+
+
+
+
+        private Size getDpiSafeResolution()
+        {
+            using (Graphics formGraphics = this.CreateGraphics())
+            {
+                return new Size((Screen.PrimaryScreen.Bounds.Width * (int)formGraphics.DpiX) / 96
+                    , (Screen.PrimaryScreen.Bounds.Height * (int)formGraphics.DpiY) / 96);
+            }
+        }
+
+
+
 
     }   
 }   

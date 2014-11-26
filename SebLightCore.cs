@@ -204,6 +204,7 @@ namespace seblight
             if (serial.IsOpen)
             {
                 lightsOff();
+                System.Threading.Thread.Sleep(200);
                 updateTimer.Stop();
                 serial.Close();
             }
