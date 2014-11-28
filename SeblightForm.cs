@@ -103,21 +103,24 @@ namespace seblight
         {
             ColorDialog colorDialog = new ColorDialog();
             colorDialog.AnyColor = true;
-
-            if (screenCapture.isRunning())
+            if (colorDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                screenCapture.pause();
-                capture_button.Text = "Start screen capture";
-                Thread.Sleep(60);           // Give the screen capture thread some time to finish
-            }
 
-            // Set colors
-            core.setAllColors(colorDialog.Color.R, colorDialog.Color.G, colorDialog.Color.B);
+                if (screenCapture.isRunning())
+                {
+                    screenCapture.pause();
+                    capture_button.Text = "Start screen capture";
+                    Thread.Sleep(60);           // Give the screen capture thread some time to finish
+                }
+
+                // Set colors
+                core.setAllColors(colorDialog.Color.R, colorDialog.Color.G, colorDialog.Color.B);
+            }
         }
 
         private void capture_button_Click(object sender, EventArgs e)
         {
-            if (screenCapture.isRunning())
+            if (!screenCapture.isRunning())
             {
                 screenCapture.start();   // Unpause the screen capture (It's all ready stareted!)
                 capture_button.Text = "Stop screen capture";

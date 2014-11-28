@@ -22,21 +22,30 @@ namespace seblight
         ManualResetEvent pauseScreenCap;                // Reset event to pause screen capture
         ManualResetEvent shutdowsScreenCapEvent;        // Exit screen capture in a safe way
 
+
         SebLightCore core;                              // Serial communication core
         Size screenSize;                                // True pixel screen size
+
+        // Refresh rate timer
+        const int refreshRateMin = 40;                  // Minimum wait between screendumps
+        ManualResetEvent refreshRateWaitEvent;          // Do not start new capture before released
+        System.Windows.Forms.Timer refrestRateTimer;    // Timer for min refresh rate
 
         public SebLightScreenCapture(SebLightCore core, Size screenSize)
         {
             // Setup schreen capture thread                      
             this.core = core;
             this.screenSize = screenSize;
-            this.pauseScreenCap = new ManualResetEvent(false);       // Do start paused!
-            this.shutdowsScreenCapEvent = new ManualResetEvent(false);   // Do not start by shutting down - boring
+            this.pauseScreenCap = new ManualResetEvent(false);              // Do start paused!
+            this.shutdowsScreenCapEvent = new ManualResetEvent(false);      // Do not start by shutting down - boring
             this.screenCaptureThread = new Thread(new ThreadStart(run));
-            this.screenCaptureThread.Start();                       // This will pause rather fast, button must be clicked
+            this.screenCaptureThread.Start();                               // This will pause rather fast, button must be clicked
 
-
-
+            this.refreshRateWaitEvent = new ManualResetEvent(false);        // Block until refreshRateWaitTimer ticks
+            this.refrestRateTimer = new System.Windows.Forms.Timer();       // Refresh rate timer
+            this.refrestRateTimer.Tick += new EventHandler(refreshScreenEventProcessor);    // Set event proeessor
+            this.refrestRateTimer.Interval = refreshRateMin;                // Set desired interval
+            this.refrestRateTimer.Start();
         }
 
 
@@ -50,9 +59,6 @@ namespace seblight
             smallGraphics = Graphics.FromImage(ledCapture);
 
 
-            Stopwatch timer = new Stopwatch();      // New stopwatch
-            timer.Start();                          // Start timer
-
             while (true)
             {
                 // Check if paused:
@@ -60,37 +66,67 @@ namespace seblight
 
                 // Check if the thread should exit
                 if (shutdowsScreenCapEvent.WaitOne(0))
+                {
                     break;
+                }
 
-
-                timer.Restart();        // Restart timer
+                refreshRateWaitEvent.WaitOne(); // Wait for refreshrate timer to reset
+                refreshRateWaitEvent.Reset();   // Block next time
+                refrestRateTimer.Start();
 
                 graphics.CopyFromScreen(0, 0, 0, 0, screenSize, CopyPixelOperation.SourceCopy);
                 smallGraphics.DrawImage(screenCapture, 0, 0, SebLightCore.leds_top, SebLightCore.leds_side);
 
-                //screenCapture.Save("screenCapture.png", ImageFormat.Png);
-                //ledCapture.Save("ledCapture.png", ImageFormat.Png);
-
-                int x = SebLightCore.leds_start;
-                int y = SebLightCore.leds_side - 1;
-                for (int i = 0; i < SebLightCore.nr_of_leds; i++)
-                {
-
-                    core.setColor(i, ledCapture.GetPixel(x, y).R, ledCapture.GetPixel(x, y).G, ledCapture.GetPixel(x, y).B);
-
-                    if (i < SebLightCore.leds_start)
-                        x--;
-                    else if (i < SebLightCore.leds_start + SebLightCore.leds_side - 1)
-                        y--;
-                    else if (i < SebLightCore.leds_start + SebLightCore.leds_side + SebLightCore.leds_top - 2)
-                        x++;
-                    else if (i < SebLightCore.leds_start + SebLightCore.leds_side + SebLightCore.leds_top + SebLightCore.leds_bottom_end + 1)
-                        y++;
-                    else
-                        x--;
-                }
+                showImage(ledCapture);
             }
         }
+
+
+
+        void showImage(Bitmap ledCapture) { 
+
+            int ledNo = 0;
+            int y = SebLightCore.leds_side - 1;
+            int x = SebLightCore.leds_start;
+
+            // Bottom start
+            for (x = SebLightCore.leds_start; x >= 0; x--) {
+                core.setColor(ledNo++, ledCapture.GetPixel(x, y).R, ledCapture.GetPixel(x, y).G, ledCapture.GetPixel(x, y).B);
+            }
+            x = 0;
+
+            // Left
+            for (y = SebLightCore.leds_side - 1; y >= 0; y--)
+            {
+                core.setColor(ledNo++, ledCapture.GetPixel(x, y).R, ledCapture.GetPixel(x, y).G, ledCapture.GetPixel(x, y).B);
+            }
+            y = 0;
+            
+            // top
+            for (x = 0; x < SebLightCore.leds_top - 1; x++)
+            {
+                core.setColor(ledNo++, ledCapture.GetPixel(x, y).R, ledCapture.GetPixel(x, y).G, ledCapture.GetPixel(x, y).B);
+            }
+            x = SebLightCore.leds_top - 1;
+
+            // Right
+            for (y = 0; y < SebLightCore.leds_side; y++)
+            {
+                core.setColor(ledNo++, ledCapture.GetPixel(x, y).R, ledCapture.GetPixel(x, y).G, ledCapture.GetPixel(x, y).B);
+            }
+            y = SebLightCore.leds_side - 1;
+
+            // Bottom End
+            for (x = SebLightCore.leds_top - 1; ledNo < SebLightCore.nr_of_leds; x--)
+            {
+                core.setColor(ledNo++, ledCapture.GetPixel(x, y).R, ledCapture.GetPixel(x, y).G, ledCapture.GetPixel(x, y).B);
+            }
+
+
+     
+        }
+    
+
 
         public void start()
         {
@@ -109,7 +145,7 @@ namespace seblight
 
         public bool isRunning()
         {
-            return !pauseScreenCap.WaitOne(0);
+            return pauseScreenCap.WaitOne(0);
         }
 
 
@@ -122,5 +158,13 @@ namespace seblight
 
         }
     
+
+        // This is the method to run when the timer is raised. 
+        private void refreshScreenEventProcessor(Object myObject,EventArgs myEventArgs)
+        {
+            refreshRateWaitEvent.Set();
+        }
+
+
     }
 }

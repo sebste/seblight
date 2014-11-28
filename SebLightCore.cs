@@ -17,10 +17,10 @@ namespace seblight
         //*****************************************************************************
 
         // LED nr and such
-        public const int nr_of_leds = 103;               // Total number of leds
+        public const int nr_of_leds = 102;               // Total number of leds
         public const int leds_side = 19;                 // Leds at each side
         public const int leds_top = 33;                  // Leds at the top
-        public const int leds_start = 16;                // Leds at the bottom start
+        public const int leds_start = 15;                // Leds at the bottom start
         public const int leds_bottom_end = 15;           // Leds at the bottom end
 
         // Serial comm stuff
@@ -179,19 +179,10 @@ namespace seblight
 
         public void lightsOff()
         {
-            for (int i = 0; i < nr_of_leds; i++)	// Set colors to 0
-            {
-                red[i] = (byte)(0);
-                green[i] = (byte)(0);
-                blue[i] = (byte)(0);
-            }
+            setAllColors(0,0,0);   
             updateColors();
         }
 
-        public void floatColors()
-        {
-
-        }
 
         public void setBrightness(double brightnessIn)
         {
